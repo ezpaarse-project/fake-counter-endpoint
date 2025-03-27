@@ -6,7 +6,7 @@ import { requireCustomerId } from '~/plugins/auth';
 
 import { AuthValidation } from '~/models/r5/auth';
 import { createReportHeader, ReportItemValidation, ReportPeriodValidation } from '~/models/r5/reports';
-import { createPlatformReport, PlatformReportValidation } from '~/models/r5/reports/PR';
+import { createPlatformReport, generateFakePerformances, PlatformReportValidation } from '~/models/r5/reports/PR';
 import { exceptions, ExceptionValidation } from '~/models/r5/exceptions';
 
 // This router is the standard one, and should work (almost) like a functional
@@ -51,7 +51,16 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
       requireCustomerId(),
     ],
     handler: async (request, reply) => {
-      const { status, ...exception } = exceptions.noReport;
+      const currentExceptions = [];
+      let currentStatus = 200;
+
+      const items = await generateFakePerformances();
+
+      if (items.length <= 0) {
+        const { status, ...exception } = exceptions.noUsageAvailable;
+        currentStatus = status;
+        currentExceptions.push(exception);
+      }
 
       const report = createPlatformReport(
         createReportHeader(
@@ -60,11 +69,12 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
           [],
           undefined,
           undefined,
-          [exception],
+          currentExceptions,
         ),
+        items,
       );
 
-      reply.status(status);
+      reply.status(currentStatus);
       reply.send(report);
     },
   });

@@ -53,4 +53,11 @@ export const exceptions = {
 
     status: 404,
   },
+  noUsageAvailable: {
+    Code: 3030,
+    Message: 'No Usage Available for Requested Dates',
+    Severity: 'Error',
+
+    status: 200,
+  },
 } as const satisfies Record<string, Exception & { status: number }>;
