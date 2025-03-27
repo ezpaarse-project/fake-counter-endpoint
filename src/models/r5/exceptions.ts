@@ -53,4 +53,4 @@ export const exceptions = {
 
     status: 404,
   },
-} satisfies Record<string, Exception & { status: number }>;
+} as const satisfies Record<string, Exception & { status: number }>;

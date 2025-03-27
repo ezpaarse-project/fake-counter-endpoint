@@ -7,7 +7,7 @@ import { requireCustomerId } from '~/plugins/auth';
 import { AuthValidation } from '~/models/r5/auth';
 import { createReportHeader, ReportItemValidation, ReportPeriodValidation } from '~/models/r5/reports';
 import { createPlatformReport, PlatformReportValidation } from '~/models/r5/reports/PR';
-import { exceptions } from '~/models/r5/exceptions';
+import { exceptions, ExceptionValidation } from '~/models/r5/exceptions';
 
 // This router is the standard one, and should work (almost) like a functional
 // and valid COUNTER 5 endpoint
@@ -23,6 +23,7 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
       querystring: AuthValidation,
       response: {
         [StatusCodes.OK]: z.array(ReportItemValidation),
+        [StatusCodes.FORBIDDEN]: ExceptionValidation,
       },
     },
     preValidation: [
@@ -43,6 +44,7 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
       querystring: AuthValidation.and(ReportPeriodValidation),
       response: {
         [StatusCodes.OK]: PlatformReportValidation,
+        [StatusCodes.FORBIDDEN]: ExceptionValidation,
       },
     },
     preValidation: [

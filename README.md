@@ -25,7 +25,7 @@ docker compose up -d
 
 Each folder in `src/routes` is supposed to be a separate COUNTER version. To add one, you'll need to add corresponding code into `src/routes/index.ts`.
 
-Each folder inside a COUNTER version is supposed to be a COUNTER endpoint, with or without flaws.
+Each folder inside a COUNTER version is supposed to be a COUNTER endpoint, with or without flaws. `index` is supposed to be working normally.
 
 ## Documentation
 
