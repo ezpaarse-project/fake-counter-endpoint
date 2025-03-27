@@ -1,0 +1,23 @@
+{
+  "include": [
+    "**/*.ts",
+    "**/*.js",
+    ".eslintrc.js"
+  ],
+  "compilerOptions": {
+    // Used by ESBuild
+    "target": "ESNext",
+    "strict": true,
+    "paths": {
+      "~/*": [
+        "./src/*"
+      ]
+    },
+
+    // Used by TypeScript
+    "lib": ["ESNext"],
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+  }
+}

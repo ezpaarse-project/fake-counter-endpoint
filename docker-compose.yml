@@ -1,0 +1,10 @@
+services:
+  counter:
+    image: node:22
+    working_dir: /usr/dev/counter
+    volumes:
+      - .:/usr/dev/counter
+    command: "npm run dev"
+    ports:
+      - 3838:3000
+    restart: unless-stopped
