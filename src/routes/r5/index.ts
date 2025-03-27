@@ -2,7 +2,12 @@ import { z } from 'zod';
 import { StatusCodes } from 'http-status-codes';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { ReportItemValidation } from '~/models/r5/reports';
+import { requireCustomerId } from '~/plugins/auth';
+
+import { AuthValidation } from '~/models/r5/auth';
+import { createReportHeader, ReportItemValidation, ReportPeriodValidation } from '~/models/r5/reports';
+import { createPlatformReport, PlatformReportValidation } from '~/models/r5/reports/PR';
+import { exceptions } from '~/models/r5/exceptions';
 
 // This router is the standard one, and should work (almost) like a functional
 // and valid COUNTER 5 endpoint
@@ -15,19 +20,55 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
     schema: {
       summary: 'Get list of reports supported by the API',
       tags: ['r5'],
+      querystring: AuthValidation,
       response: {
         [StatusCodes.OK]: z.array(ReportItemValidation),
       },
     },
+    preValidation: [
+      requireCustomerId(),
+    ],
     handler: async (request, reply) => {
       reply.status(StatusCodes.OK);
       return [];
     },
   });
 
+  fastify.route({
+    method: 'GET',
+    url: '/reports/pr',
+    schema: {
+      summary: "Get COUNTER 'Platform Master Report' [PR]",
+      tags: ['r5'],
+      querystring: AuthValidation.and(ReportPeriodValidation),
+      response: {
+        [StatusCodes.OK]: PlatformReportValidation,
+      },
+    },
+    preValidation: [
+      requireCustomerId(),
+    ],
+    handler: async (request, reply) => {
+      const { status, ...exception } = exceptions.noReport;
+
+      const report = createPlatformReport(
+        createReportHeader(
+          'PR',
+          'Platform Report',
+          [],
+          undefined,
+          undefined,
+          [exception],
+        ),
+      );
+
+      reply.status(status);
+      reply.send(report);
+    },
+  });
+
   // TODO: Support status
   // TODO: Support reports
-  // TODO: Auth
   // TODO: Support members
 };
 

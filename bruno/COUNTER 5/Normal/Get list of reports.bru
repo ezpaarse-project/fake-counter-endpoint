@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: http://localhost:3838/reports
+  url: http://localhost:3838/reports?customer_id=0000
   body: none
   auth: none
+}
+
+params:query {
+  customer_id: 0000
 }
