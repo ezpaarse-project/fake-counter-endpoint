@@ -62,7 +62,7 @@ const loggerBasePlugin: FastifyPluginAsync = async (fastify) => {
 const loggerPlugin = fp(
   loggerBasePlugin,
   {
-    name: 'ezr-logger',
+    name: 'fce-logger',
     encapsulate: false,
   },
 );

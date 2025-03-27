@@ -62,7 +62,7 @@ const formatBasePlugin: FastifyPluginAsync<PluginOptions> = async (fastify, opts
 // Register plugin
 const formatPlugin = fp(
   formatBasePlugin,
-  { name: 'fee-openapi', encapsulate: false },
+  { name: 'fce-openapi', encapsulate: false },
 );
 
 export default formatPlugin;
