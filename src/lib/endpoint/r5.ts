@@ -9,6 +9,7 @@ import { AuthValidation } from '~/models/r5/auth';
 import { exceptions, ExceptionValidation, type Exception } from '~/models/r5/exceptions';
 import { AnyReportFilterQueryValidation, ReportPeriodQueryValidation } from '~/models/r5/query';
 import { generateFakeInstitutions, InstitutionValidation, type Institution } from '~/models/r5/institutions';
+import { generateFakeStatus, StatusValidation, type Status } from '~/models/r5/status';
 import * as r5 from '~/models/r5/reports';
 
 /**
@@ -197,6 +198,7 @@ export function prepareReportSchema<AnyReport, Query>(
       .and(queryValidation || AnyReportFilterQueryValidation),
     response: {
       [StatusCodes.OK]: resultValidation,
+      [StatusCodes.NOT_FOUND]: ExceptionValidation,
       [StatusCodes.BAD_REQUEST]: ExceptionValidation,
       [StatusCodes.UNAUTHORIZED]: ExceptionValidation,
       [StatusCodes.FORBIDDEN]: ExceptionValidation,
@@ -314,5 +316,36 @@ export function prepareMemberListHandler() {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<Institution[]> => {
     reply.status(StatusCodes.OK);
     return generateFakeInstitutions();
+  };
+}
+
+/**
+ * Prepare schema for status routes
+ *
+ * @returns Schema for status route
+ */
+export function prepareStatusSchema() {
+  return {
+    summary: 'Get current status of the reporting service',
+    tags: ['r5'],
+    querystring: AnyReportFilterQueryValidation,
+    response: {
+      [StatusCodes.OK]: z.array(StatusValidation),
+      [StatusCodes.BAD_REQUEST]: ExceptionValidation,
+      [StatusCodes.UNAUTHORIZED]: ExceptionValidation,
+      [StatusCodes.FORBIDDEN]: ExceptionValidation,
+    },
+  };
+}
+
+/**
+ * Prepare handler for status routes
+ *
+ * @returns Handler for status route
+ */
+export function prepareStatusHandler() {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<Status[]> => {
+    reply.status(StatusCodes.OK);
+    return generateFakeStatus();
   };
 }

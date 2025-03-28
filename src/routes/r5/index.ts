@@ -3,12 +3,14 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { requireCustomerId } from '~/plugins/auth';
 
 import {
+  prepareStatusSchema,
+  prepareStatusHandler,
+  prepareMemberListSchema,
+  prepareMemberListHandler,
   prepareReportListSchema,
   prepareReportListHandler,
   prepareReportSchema,
   prepareReportHandler,
-  prepareMemberListSchema,
-  prepareMemberListHandler,
   prepareUnsupportedReportSchema,
   prepareUnsupportedHandler,
 } from '~/lib/endpoint/r5';
@@ -29,6 +31,16 @@ import {
 // https://app.swaggerhub.com/apis/COUNTER/counter-sushi_5_0_api/
 
 const router: FastifyPluginAsyncZod = async (fastify) => {
+  fastify.route({
+    method: 'GET',
+    url: '/status',
+    schema: prepareStatusSchema(),
+    preValidation: [
+      requireCustomerId(),
+    ],
+    handler: prepareStatusHandler(),
+  });
+
   fastify.route({
     method: 'GET',
     url: '/members',
