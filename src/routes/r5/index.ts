@@ -3,7 +3,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { requireCustomerId } from '~/plugins/auth';
 
 import {
-  reportListSchema,
+  prepareReportListSchema,
   prepareReportListHandler,
   prepareReportSchema,
   prepareReportHandler,
@@ -22,7 +22,7 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
     method: 'GET',
     url: '/reports',
-    schema: reportListSchema,
+    schema: prepareReportListSchema(),
     preValidation: [
       requireCustomerId(),
     ],

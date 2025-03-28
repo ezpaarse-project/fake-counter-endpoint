@@ -16,7 +16,7 @@ import {
   type ReportListItem,
 } from '~/models/r5/reports';
 
-export const reportListSchema = {
+export const prepareReportListSchema = () => ({
   summary: 'Get list of reports supported by the API',
   tags: ['r5'],
   querystring: AuthValidation,
@@ -26,7 +26,7 @@ export const reportListSchema = {
     [StatusCodes.UNAUTHORIZED]: ExceptionValidation,
     [StatusCodes.FORBIDDEN]: ExceptionValidation,
   },
-};
+});
 
 export function prepareReportListHandler(supported = REPORT_IDS) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<ReportListItem[]> => {
@@ -40,7 +40,10 @@ export function prepareReportListHandler(supported = REPORT_IDS) {
   };
 }
 
-export function prepareReportSchema<Report>(reportId: ReportID, validation: z.ZodType<Report>) {
+export function prepareReportSchema<Report>(
+  reportId: ReportID,
+  validation: z.ZodType<Report>,
+) {
   return {
     summary: `Get COUNTER '${REPORT_NAMES[reportId]}' [${reportId}]`,
     tags: ['r5'],

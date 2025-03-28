@@ -12,7 +12,7 @@ export function requireCustomerId(valid: string[] = ['0000']): preValidationHook
     const id = (request.query as { customer_id?: string })?.customer_id;
 
     if (!id) {
-      const { status, ...exception } = exceptions.noAuth;
+      const { status, ...exception } = exceptions.noEnoughInfo;
       reply.status(status);
       reply.send(exception);
       return;
@@ -36,7 +36,7 @@ export function requireRequestorId(valid: string[] = ['0000']): preValidationHoo
     const id = (request.query as { requestor_id?: string })?.requestor_id;
 
     if (!id) {
-      const { status, ...exception } = exceptions.noAuth;
+      const { status, ...exception } = exceptions.noEnoughInfo;
       reply.status(status);
       reply.send(exception);
       return;
@@ -60,7 +60,7 @@ export function requireAPIKey(valid: string[] = ['0000']): preValidationHookHand
     const key = (request.query as { api_key?: string })?.api_key;
 
     if (!key) {
-      const { status, ...exception } = exceptions.noAuth;
+      const { status, ...exception } = exceptions.noEnoughInfo;
       reply.status(status);
       reply.send(exception);
       return;
