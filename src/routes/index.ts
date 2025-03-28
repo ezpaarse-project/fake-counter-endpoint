@@ -11,6 +11,19 @@ import {
 
 import openapi from '~/plugins/openapi';
 
+import { errorHandler as r5ErrorHandler } from '~/lib/endpoint/r5';
+
+const r5Router: FastifyPluginAsync = async (fastify) => {
+  // Format errors as COUNTER 5 exceptions
+  fastify.setErrorHandler(r5ErrorHandler);
+
+  fastify.register(autoLoad, {
+    dir: join(__dirname, 'r5'),
+    maxDepth: 2,
+    prefix: '/',
+  });
+};
+
 const router: FastifyPluginAsync = async (fastify) => {
   // Set validator
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -20,12 +33,8 @@ const router: FastifyPluginAsync = async (fastify) => {
   // Register openapi and doc
   app.register(openapi, { transform: jsonSchemaTransform });
 
-  // Register routes
-  app.register(autoLoad, {
-    dir: join(__dirname, 'r5'),
-    maxDepth: 2,
-    prefix: '/',
-  });
+  // Register COUNTER versions
+  app.register(r5Router);
 };
 
 export default router;

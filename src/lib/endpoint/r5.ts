@@ -1,24 +1,42 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { StatusCodes } from 'http-status-codes';
+
+import { appLogger } from '~/lib/logger';
 
 import { AuthValidation } from '~/models/r5/auth';
 import { exceptions, ExceptionValidation, type Exception } from '~/models/r5/exceptions';
 import { AnyReportFilterQueryValidation, ReportPeriodQueryValidation } from '~/models/r5/query';
-import {
-  isReportId,
-  createReport,
-  createReportHeader,
-  REPORT_IDS,
-  REPORT_NAMES,
-  ReportListItemValidation,
-  type Report,
-  type ReportID,
-  type ReportListItem,
-  type ReportFilter,
-  type ReportAttribute,
-  type ReportItemsGenerator,
-} from '~/models/r5/reports';
+import * as r5 from '~/models/r5/reports';
+
+export function errorHandler(err: FastifyError, request: FastifyRequest, reply: FastifyReply) {
+  let status: number;
+  let exception: Exception;
+  ({ status, ...exception } = exceptions.noAvailable);
+
+  if (hasZodFastifySchemaValidationErrors(err)) {
+    exception.Data = err.validation.map((v) => `${v.schemaPath} is ${v.message}`).join(', ');
+    ({ status, ...exception } = exceptions.noEnoughInfo);
+  }
+  if (isResponseSerializationError(err)) {
+    exception.Data = 'Error serializing response. See logs of application for more details.';
+    appLogger.error({
+      msg: 'Error serializing response',
+      err: err.cause.issues,
+    });
+  }
+
+  if (!exception.Data) {
+    exception.Data = 'Unexpected error. See logs of application for more details.';
+    appLogger.error({
+      msg: 'Unexpected error',
+      err,
+    });
+  }
+
+  return reply.status(status).send(exception);
+}
 
 const ReportListQueryValidation = AnyReportFilterQueryValidation
   .and(z.object({ search: z.string().optional() }));
@@ -29,20 +47,20 @@ export const prepareReportListSchema = () => ({
   querystring: AuthValidation
     .and(ReportListQueryValidation),
   response: {
-    [StatusCodes.OK]: z.array(ReportListItemValidation),
+    [StatusCodes.OK]: z.array(r5.ReportListItemValidation),
     [StatusCodes.BAD_REQUEST]: ExceptionValidation,
     [StatusCodes.UNAUTHORIZED]: ExceptionValidation,
     [StatusCodes.FORBIDDEN]: ExceptionValidation,
   },
 });
 
-export function prepareReportListHandler(supported: string[] = Array.from(REPORT_IDS)) {
-  return async (request: FastifyRequest, reply: FastifyReply): Promise<ReportListItem[]> => {
+export function prepareReportListHandler(supported: string[] = Array.from(r5.REPORT_IDS)) {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<r5.ReportListItem[]> => {
     const query = ReportListQueryValidation.parse(request.query);
 
     const reports = supported.map((id) => ({
       Report_ID: id,
-      Report_Name: isReportId(id) ? REPORT_NAMES[id] : 'Unknown Report',
+      Report_Name: r5.isReportId(id) ? r5.REPORT_NAMES[id] : 'Unknown Report',
       Report_Description: 'Randomly generated report',
       Release: 5 as const,
     }));
@@ -56,8 +74,8 @@ export function prepareReportListHandler(supported: string[] = Array.from(REPORT
 
 function attributesFromQuery<Query extends Record<string, string>>(
   query: Query,
-): ReportAttribute[] {
-  const attributes: ReportAttribute[] = [];
+): r5.ReportAttribute[] {
+  const attributes: r5.ReportAttribute[] = [];
 
   if (query.access_method) {
     attributes.push({ Name: 'Access_Methods', Value: query.access_method });
@@ -72,8 +90,8 @@ function attributesFromQuery<Query extends Record<string, string>>(
   return attributes;
 }
 
-function filtersFromQuery<Query extends Record<string, string>>(query: Query): ReportFilter[] {
-  const filters: ReportAttribute[] = [];
+function filtersFromQuery<Query extends Record<string, string>>(query: Query): r5.ReportFilter[] {
+  const filters: r5.ReportAttribute[] = [];
 
   if (query.begin_date) {
     filters.push({ Name: 'Begin_Date', Value: query.begin_date });
@@ -99,12 +117,12 @@ function pickRandomNonBlockingException(): Exception | undefined {
 }
 
 export function prepareReportSchema<AnyReport, Query>(
-  reportId: ReportID,
+  reportId: r5.ReportID,
   resultValidation: z.ZodType<AnyReport>,
   queryValidation?: z.ZodType<Query>,
 ) {
   return {
-    summary: `Get COUNTER '${REPORT_NAMES[reportId]}' [${reportId}]`,
+    summary: `Get COUNTER '${r5.REPORT_NAMES[reportId]}' [${reportId}]`,
     tags: ['r5'],
     querystring: AuthValidation
       .and(ReportPeriodQueryValidation)
@@ -119,14 +137,14 @@ export function prepareReportSchema<AnyReport, Query>(
 }
 
 export function prepareReportHandler<ReportItem, Query>(
-  reportId: ReportID,
-  reportItemsGenerator: ReportItemsGenerator<ReportItem>,
+  reportId: r5.ReportID,
+  reportItemsGenerator: r5.ReportItemsGenerator<ReportItem>,
   queryValidation?: z.ZodType<Query>,
 ) {
   const queryValidator = ReportPeriodQueryValidation
     .and(queryValidation || AnyReportFilterQueryValidation);
 
-  return async (request: FastifyRequest, reply: FastifyReply): Promise<Report<ReportItem>> => {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<r5.Report<ReportItem>> => {
     const query = queryValidator.parse(request.query);
 
     const currentExceptions: Exception[] = [];
@@ -149,8 +167,8 @@ export function prepareReportHandler<ReportItem, Query>(
       }
     }
 
-    const report = createReport(
-      await createReportHeader(reportId, filters, attributes, currentExceptions),
+    const report = r5.createReport(
+      await r5.createReportHeader(reportId, filters, attributes, currentExceptions),
       items,
     );
 
