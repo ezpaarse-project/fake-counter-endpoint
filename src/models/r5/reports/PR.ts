@@ -1,34 +1,8 @@
 import { z } from 'zod';
 
-import {
-  ReportHeaderValidation,
-  type ReportHeader,
-} from '.';
 import fakeZodSchema from '~/lib/faker';
 
-const ItemPerformanceValidation = z.object({
-  Period: z.object({
-    Begin_Date: z.string().regex(/[0-9]{4}-[0-9]{2}(-[0-9]{2})?/),
-    End_Date: z.string().regex(/[0-9]{4}-[0-9]{2}(-[0-9]{2})?/),
-  }),
-  Instance: z.array(z.object({
-    Metric_Type: z.enum([
-      'Searches_Automated',
-      'Searches_Federated',
-      'Searches_Platform',
-      'Searches_Regular',
-      'Total_Item_Investigations',
-      'Total_Item_Requests',
-      'Unique_Item_Investigations',
-      'Unique_Item_Requests',
-      'Unique_Title_Investigations',
-      'Unique_Title_Requests',
-      'No_License',
-      'Limit_Exceeded',
-    ] as const),
-    Value: z.number().int().min(1),
-  })).min(1),
-});
+import { ItemPerformanceValidation, ReportValidation } from '.';
 
 const PlatformUsageValidation = z.object({
   Platform: z.string(),
@@ -54,24 +28,10 @@ const PlatformUsageValidation = z.object({
 
 type PlatformUsage = z.infer<typeof PlatformUsageValidation>;
 
-export const PlatformReportValidation = z.object({
-  Report_Header: ReportHeaderValidation,
-
-  Report_Items: z.array(PlatformUsageValidation),
-});
+export const PlatformReportValidation = ReportValidation(PlatformUsageValidation);
 
 export type PlatformReport = z.infer<typeof PlatformReportValidation>;
 
-export function generateFakePerformances(min = 0): Promise<PlatformUsage[]> {
+export function generateFakePlatformUsage(min = 0): Promise<PlatformUsage[]> {
   return fakeZodSchema(z.array(PlatformUsageValidation).min(min));
-}
-
-export function createPlatformReport(
-  Report_Header: ReportHeader,
-  Report_Items: PlatformUsage[],
-): PlatformReport {
-  return {
-    Report_Header,
-    Report_Items,
-  };
 }
