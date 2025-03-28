@@ -8,6 +8,7 @@ import { appLogger } from '~/lib/logger';
 import { AuthValidation } from '~/models/r5/auth';
 import { exceptions, ExceptionValidation, type Exception } from '~/models/r5/exceptions';
 import { AnyReportFilterQueryValidation, ReportPeriodQueryValidation } from '~/models/r5/query';
+import { generateFakeInstitutions, InstitutionValidation, type Institution } from '~/models/r5/institutions';
 import * as r5 from '~/models/r5/reports';
 
 /**
@@ -250,5 +251,36 @@ export function prepareReportHandler<ReportItem, Query>(
 
     reply.status(StatusCodes.OK);
     return report;
+  };
+}
+
+/**
+ * Prepare schema for member list routes
+ *
+ * @returns Schema for memberlist route
+ */
+export function prepareMemberListSchema() {
+  return {
+    summary: 'Get list of consortium members related to a Customer_ID',
+    tags: ['r5'],
+    querystring: AnyReportFilterQueryValidation,
+    response: {
+      [StatusCodes.OK]: z.array(InstitutionValidation),
+      [StatusCodes.BAD_REQUEST]: ExceptionValidation,
+      [StatusCodes.UNAUTHORIZED]: ExceptionValidation,
+      [StatusCodes.FORBIDDEN]: ExceptionValidation,
+    },
+  };
+}
+
+/**
+ * Prepare handler for member list routes
+ *
+ * @returns Handler for member list route
+ */
+export function prepareMemberListHandler() {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<Institution[]> => {
+    reply.status(StatusCodes.OK);
+    return generateFakeInstitutions();
   };
 }

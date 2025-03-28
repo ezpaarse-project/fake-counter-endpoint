@@ -1,0 +1,17 @@
+meta {
+  name: Get members
+  type: http
+  seq: 18
+}
+
+get {
+  url: http://localhost:3838/members?customer_id=0000&begin_date=2024-01&end_date=2024-12
+  body: none
+  auth: none
+}
+
+params:query {
+  customer_id: 0000
+  begin_date: 2024-01
+  end_date: 2024-12
+}

@@ -7,6 +7,8 @@ import {
   prepareReportListHandler,
   prepareReportSchema,
   prepareReportHandler,
+  prepareMemberListSchema,
+  prepareMemberListHandler,
 } from '~/lib/endpoint/r5';
 
 import { generateFakePlatformUsage, PlatformReportValidation } from '~/models/r5/reports/PR';
@@ -25,6 +27,16 @@ import {
 // https://app.swaggerhub.com/apis/COUNTER/counter-sushi_5_0_api/
 
 const router: FastifyPluginAsyncZod = async (fastify) => {
+  fastify.route({
+    method: 'GET',
+    url: '/members',
+    schema: prepareMemberListSchema(),
+    preValidation: [
+      requireCustomerId(),
+    ],
+    handler: prepareMemberListHandler(),
+  });
+
   fastify.route({
     method: 'GET',
     url: '/reports',
