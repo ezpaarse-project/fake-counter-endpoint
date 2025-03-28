@@ -7,6 +7,7 @@ import {
   ItemPerformanceValidation,
   PublisherIDValidation,
   ReportValidation,
+  type ReportItemsGenerator,
 } from '.';
 
 const DatabaseUsageValidation = z.object({
@@ -36,6 +37,7 @@ export const DatabaseReportValidation = ReportValidation(DatabaseUsageValidation
 
 export type DatabaseReport = z.infer<typeof DatabaseReportValidation>;
 
-export function generateFakeDatabaseUsage(min = 0): Promise<DatabaseUsage[]> {
-  return fakeZodSchema(z.array(DatabaseUsageValidation).min(min));
-}
+export const generateFakeDatabaseUsage: ReportItemsGenerator<DatabaseUsage> = (min = 0) => {
+  const schema = z.array(DatabaseUsageValidation).min(min);
+  return fakeZodSchema(schema);
+};

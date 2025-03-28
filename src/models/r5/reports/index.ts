@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { ExceptionValidation, type Exception } from '../exceptions';
+import fakeZodSchema from '~/lib/faker';
 
 export const REPORT_IDS = [
   'PR',
@@ -24,6 +25,10 @@ export const REPORT_IDS = [
 export const ReportIDValidation = z.enum(REPORT_IDS);
 
 export type ReportID = z.infer<typeof ReportIDValidation>;
+
+export const isReportId = (id: string): id is ReportID => (
+  REPORT_IDS as Readonly<string[]>
+).includes(id);
 
 export const REPORT_NAMES: Record<ReportID, string> = {
   PR: 'Platform Report',
@@ -55,25 +60,16 @@ export const ReportListItemValidation = z.object({
 export type ReportListItem = z.infer<typeof ReportListItemValidation>;
 
 export const ReportPeriodValidation = z.object({
-  Begin_Date: z.string().regex(/[0-9]{4}-[0-9]{2}(-[0-9]{2})?/),
-  End_Date: z.string().regex(/[0-9]{4}-[0-9]{2}(-[0-9]{2})?/),
+  Begin_Date: z.string().date(),
+  End_Date: z.string().date(),
 });
 
 export type ReportPeriod = z.infer<typeof ReportPeriodValidation>;
-
-export const ReportPeriodQueryValidation = z.object({
-  begin_date: ReportPeriodValidation.shape.Begin_Date,
-  end_date: ReportPeriodValidation.shape.End_Date,
-});
-
-export type ReportQueryPeriod = z.infer<typeof ReportPeriodQueryValidation>;
 
 const ReportInstitutionIDValidation = z.object({
   Type: z.enum(['ISNI', 'ISIL', 'OCLC', 'ROR', 'Proprietary'] as const),
   Value: z.string(),
 });
-
-type ReportInstitutionID = z.infer<typeof ReportInstitutionIDValidation>;
 
 export const ItemIDValidation = z.object({
   Type: z.enum(['Online_ISSN', 'Print_ISSN', 'Linking_ISSN', 'ISBN', 'DOI', 'Proprietary', 'URI'] as const),
@@ -89,19 +85,19 @@ export const PublisherIDValidation = z.object({
 
 export type PublisherID = z.infer<typeof PublisherIDValidation>;
 
-const ReportFilterValidation = z.object({
+export const ReportFilterValidation = z.object({
   Name: z.string(),
   Value: z.string(),
 });
 
-type ReportFilter = z.infer<typeof ReportFilterValidation>;
+export type ReportFilter = z.infer<typeof ReportFilterValidation>;
 
-const ReportAttributesValidation = z.object({
+export const ReportAttributeValidation = z.object({
   Name: z.string(),
   Value: z.string(),
 });
 
-type ReportAttributes = z.infer<typeof ReportAttributesValidation>;
+export type ReportAttribute = z.infer<typeof ReportAttributeValidation>;
 
 export const ReportHeaderValidation = z.object({
   Created: z.string().datetime(),
@@ -113,7 +109,7 @@ export const ReportHeaderValidation = z.object({
   Institution_Name: z.string(),
   Institution_ID: z.array(ReportInstitutionIDValidation).optional(),
   Report_Filters: z.array(ReportFilterValidation),
-  Report_Attributes: z.array(ReportAttributesValidation).optional(),
+  Report_Attributes: z.array(ReportAttributeValidation).optional(),
   Exceptions: z.array(ExceptionValidation).optional(),
 });
 
@@ -155,26 +151,27 @@ export type Report<T> = {
   Report_Items: T[];
 };
 
-export function createReportHeader(
+export async function createReportHeader(
   Report_ID: ReportID,
   Report_Filters: ReportFilter[],
-  Institution_ID?: ReportInstitutionID[],
-  Report_Attributes?: ReportAttributes[],
+  Report_Attributes?: ReportAttribute[],
   Exceptions?: Exception[],
-): ReportHeader {
+): Promise<ReportHeader> {
   return {
     Created: new Date().toISOString(),
     Created_By: 'Fake Counter Endpoint',
     Report_ID,
     Report_Name: REPORT_NAMES[Report_ID],
     Release: '5',
-    Institution_Name: 'test',
-    Institution_ID,
+    Institution_Name: await fakeZodSchema(z.string()),
+    Institution_ID: await fakeZodSchema(z.array(ReportInstitutionIDValidation)),
     Report_Filters,
     Report_Attributes,
     Exceptions,
   };
 }
+
+export type ReportItemsGenerator<T> = (min?: number) => Promise<T[]>;
 
 export function createReport<T>(Report_Header: ReportHeader, Report_Items: T[]) {
   return {

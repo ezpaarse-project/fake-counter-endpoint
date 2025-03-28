@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import fakeZodSchema from '~/lib/faker';
 
-import { ItemPerformanceValidation, ReportValidation } from '.';
+import { ItemPerformanceValidation, ReportValidation, type ReportItemsGenerator } from '.';
 
 const PlatformUsageValidation = z.object({
   Platform: z.string(),
@@ -32,6 +32,7 @@ export const PlatformReportValidation = ReportValidation(PlatformUsageValidation
 
 export type PlatformReport = z.infer<typeof PlatformReportValidation>;
 
-export function generateFakePlatformUsage(min = 0): Promise<PlatformUsage[]> {
-  return fakeZodSchema(z.array(PlatformUsageValidation).min(min));
-}
+export const generateFakePlatformUsage: ReportItemsGenerator<PlatformUsage> = (min = 0) => {
+  const schema = z.array(PlatformUsageValidation).min(min);
+  return fakeZodSchema(schema);
+};

@@ -7,6 +7,7 @@ import {
   ItemPerformanceValidation,
   PublisherIDValidation,
   ReportValidation,
+  type ReportItemsGenerator,
 } from '.';
 
 const TitleUsageValidation = z.object({
@@ -44,6 +45,7 @@ export const TitleReportValidation = ReportValidation(TitleUsageValidation);
 
 export type TitleReport = z.infer<typeof TitleReportValidation>;
 
-export function generateFakeTitleUsage(min = 0): Promise<TitleUsage[]> {
-  return fakeZodSchema(z.array(TitleUsageValidation).min(min));
-}
+export const generateFakeTitleUsage: ReportItemsGenerator<TitleUsage> = (min = 0) => {
+  const schema = z.array(TitleUsageValidation).min(min);
+  return fakeZodSchema(schema);
+};

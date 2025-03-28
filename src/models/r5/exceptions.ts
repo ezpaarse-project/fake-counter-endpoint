@@ -2,8 +2,8 @@ import { StatusCodes } from 'http-status-codes';
 import { z } from 'zod';
 
 export const ExceptionValidation = z.object({
-  Code: z.number().int(), // TODO: Restrict to some values
-  Severity: z.string(), // TODO: Restrict to some values
+  Code: z.number().int(),
+  Severity: z.enum(['Warning', 'Error', 'Fatal', 'Debug', 'Info'] as const),
   Message: z.string(),
   Help_URL: z.string().optional(),
   Data: z.string().optional(),
@@ -12,6 +12,13 @@ export const ExceptionValidation = z.object({
 export type Exception = z.infer<typeof ExceptionValidation>;
 
 export const exceptions = {
+  noAvailable: {
+    Code: 1000,
+    Message: 'Service Not Available',
+    Severity: 'Fatal',
+
+    status: StatusCodes.SERVICE_UNAVAILABLE,
+  },
   noEnoughInfo: {
     Code: 1030,
     Message: 'Insufficient Information to Process Request',
