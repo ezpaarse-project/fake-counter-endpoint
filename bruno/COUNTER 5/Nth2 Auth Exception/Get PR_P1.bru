@@ -1,0 +1,17 @@
+meta {
+  name: Get PR_P1
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:3838/_nth2-auth-exception/reports/pr_p1?customer_id=0000&begin_date=2024-01&end_date=2024-12
+  body: none
+  auth: none
+}
+
+params:query {
+  customer_id: 0000
+  begin_date: 2024-01
+  end_date: 2024-12
+}

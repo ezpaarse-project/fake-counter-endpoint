@@ -1,0 +1,17 @@
+meta {
+  name: Get TR_J2
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:3838/_nth2-auth-exception/reports/tr_j2?customer_id=0000&begin_date=2024-01&end_date=2024-12
+  body: none
+  auth: none
+}
+
+params:query {
+  customer_id: 0000
+  begin_date: 2024-01
+  end_date: 2024-12
+}
