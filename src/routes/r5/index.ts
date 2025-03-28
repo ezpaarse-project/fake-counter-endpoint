@@ -9,6 +9,8 @@ import {
   prepareReportHandler,
   prepareMemberListSchema,
   prepareMemberListHandler,
+  prepareUnsupportedReportSchema,
+  prepareUnsupportedHandler,
 } from '~/lib/endpoint/r5';
 
 import { generateFakePlatformUsage, PlatformReportValidation } from '~/models/r5/reports/PR';
@@ -309,6 +311,16 @@ const router: FastifyPluginAsyncZod = async (fastify) => {
       'IR_M1',
       generateFakeItemUsage,
     ),
+  });
+
+  fastify.route({
+    method: 'GET',
+    url: '/reports/:reportId',
+    schema: prepareUnsupportedReportSchema(),
+    preValidation: [
+      requireCustomerId(),
+    ],
+    handler: prepareUnsupportedHandler(),
   });
 };
 

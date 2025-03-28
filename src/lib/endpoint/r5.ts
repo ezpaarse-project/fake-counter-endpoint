@@ -255,6 +255,38 @@ export function prepareReportHandler<ReportItem, Query>(
 }
 
 /**
+ * Prepare schema for unsupported report
+ *
+ * @returns Schema for unsupported report
+ */
+export function prepareUnsupportedReportSchema() {
+  return {
+    summary: 'Unsupported reports',
+    hide: true, // hide from docs
+    tags: ['r5'],
+    response: {
+      [StatusCodes.NOT_FOUND]: ExceptionValidation,
+      [StatusCodes.BAD_REQUEST]: ExceptionValidation,
+      [StatusCodes.UNAUTHORIZED]: ExceptionValidation,
+      [StatusCodes.FORBIDDEN]: ExceptionValidation,
+    },
+  };
+}
+
+/**
+ * Prepare handler for unsupported report
+ *
+ * @returns Handler for unsupported report
+ */
+export function prepareUnsupportedHandler() {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<Exception> => {
+    const { status, ...exception } = exceptions.reportNotSupported;
+    reply.status(status);
+    return exception;
+  };
+}
+
+/**
  * Prepare schema for member list routes
  *
  * @returns Schema for memberlist route
