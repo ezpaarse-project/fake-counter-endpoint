@@ -5,6 +5,13 @@ import { z } from 'zod';
 
 const jsonSchemas = new Map<string, ReturnType<typeof zodToJsonSchema>>();
 
+/**
+ * Generate fake data from a Zod schema
+ *
+ * @param zod The Zod schema
+ *
+ * @returns The generated fake data
+ */
 export default async function fakeZodSchema<T>(zod: z.ZodSchema<T>): Promise<T> {
   // Cache generated JSON schemas
   const key = hash(zod);

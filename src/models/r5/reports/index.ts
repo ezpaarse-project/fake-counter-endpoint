@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { faker } from '@faker-js/faker';
 
 import { ExceptionValidation, type Exception } from '../exceptions';
-import fakeZodSchema from '~/lib/faker';
+import { InstitutionIDValidation, type InstitutionID } from '../institutions';
 
 export const REPORT_IDS = [
   'PR',
@@ -66,11 +67,6 @@ export const ReportPeriodValidation = z.object({
 
 export type ReportPeriod = z.infer<typeof ReportPeriodValidation>;
 
-const ReportInstitutionIDValidation = z.object({
-  Type: z.enum(['ISNI', 'ISIL', 'OCLC', 'ROR', 'Proprietary'] as const),
-  Value: z.string(),
-});
-
 export const ItemIDValidation = z.object({
   Type: z.enum(['Online_ISSN', 'Print_ISSN', 'Linking_ISSN', 'ISBN', 'DOI', 'Proprietary', 'URI'] as const),
   Value: z.string(),
@@ -107,7 +103,7 @@ export const ReportHeaderValidation = z.object({
   Report_Name: z.string(),
   Release: z.literal('5'),
   Institution_Name: z.string(),
-  Institution_ID: z.array(ReportInstitutionIDValidation).optional(),
+  Institution_ID: z.array(InstitutionIDValidation).optional(),
   Report_Filters: z.array(ReportFilterValidation),
   Report_Attributes: z.array(ReportAttributeValidation).optional(),
   Exceptions: z.array(ExceptionValidation).optional(),
@@ -157,14 +153,20 @@ export async function createReportHeader(
   Report_Attributes?: ReportAttribute[],
   Exceptions?: Exception[],
 ): Promise<ReportHeader> {
+  const institutionIdLength = Math.random() * 3;
+  const institutionIds: InstitutionID[] = Array.from({ length: institutionIdLength }, () => ({
+    Type: faker.helpers.arrayElement(Object.values(InstitutionIDValidation.shape.Type.Values)),
+    Value: faker.string.alpha(5 + Math.random() * 10),
+  }));
+
   return {
     Created: new Date().toISOString(),
     Created_By: 'Fake Counter Endpoint',
     Report_ID,
     Report_Name: REPORT_NAMES[Report_ID],
     Release: '5',
-    Institution_Name: await fakeZodSchema(z.string()),
-    Institution_ID: await fakeZodSchema(z.array(ReportInstitutionIDValidation)),
+    Institution_Name: faker.company.name(),
+    Institution_ID: institutionIds,
     Report_Filters,
     Report_Attributes,
     Exceptions,

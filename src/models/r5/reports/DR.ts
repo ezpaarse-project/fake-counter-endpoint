@@ -37,6 +37,13 @@ export const DatabaseReportValidation = ReportValidation(DatabaseUsageValidation
 
 export type DatabaseReport = z.infer<typeof DatabaseReportValidation>;
 
+/**
+ * Generate fake database usage
+ *
+ * @param min Minimum number of items
+ *
+ * @returns The items
+ */
 export const generateFakeDatabaseUsage: ReportItemsGenerator<DatabaseUsage> = (min = 0) => {
   const schema = z.array(DatabaseUsageValidation).min(min);
   return fakeZodSchema(schema);

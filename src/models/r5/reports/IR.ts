@@ -119,6 +119,13 @@ export const ItemReportValidation = ReportValidation(ItemUsageValidation);
 
 export type ItemReport = z.infer<typeof ItemReportValidation>;
 
+/**
+ * Generate fake item usage
+ *
+ * @param min Minimum number of items
+ *
+ * @returns The items
+ */
 export const generateFakeItemUsage: ReportItemsGenerator<ItemUsage> = (min = 0) => {
   const schema = z.array(ItemUsageValidation).min(min);
   return fakeZodSchema(schema);

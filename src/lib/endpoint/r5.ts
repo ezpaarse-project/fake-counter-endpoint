@@ -10,20 +10,30 @@ import { exceptions, ExceptionValidation, type Exception } from '~/models/r5/exc
 import { AnyReportFilterQueryValidation, ReportPeriodQueryValidation } from '~/models/r5/query';
 import * as r5 from '~/models/r5/reports';
 
+/**
+ * Format errors as COUNTER 5 exceptions
+ *
+ * @param err The error
+ * @param request The request
+ * @param reply The reply
+ *
+ * @returns Fastify instance after sending error
+ */
 export function errorHandler(err: FastifyError, request: FastifyRequest, reply: FastifyReply) {
   let status: number;
   let exception: Exception;
-  ({ status, ...exception } = exceptions.noAvailable);
+  ({ status, ...exception } = exceptions.notAvailable);
 
   if (hasZodFastifySchemaValidationErrors(err)) {
     exception.Data = err.validation.map((v) => `${v.schemaPath} is ${v.message}`).join(', ');
-    ({ status, ...exception } = exceptions.noEnoughInfo);
+    ({ status, ...exception } = exceptions.notEnoughInformation);
   }
+
   if (isResponseSerializationError(err)) {
     exception.Data = 'Error serializing response. See logs of application for more details.';
     appLogger.error({
       msg: 'Error serializing response',
-      err: err.cause.issues,
+      issues: err.cause.issues,
     });
   }
 
@@ -38,9 +48,15 @@ export function errorHandler(err: FastifyError, request: FastifyRequest, reply: 
   return reply.status(status).send(exception);
 }
 
+// Query validation for report list
 const ReportListQueryValidation = AnyReportFilterQueryValidation
   .and(z.object({ search: z.string().optional() }));
 
+/**
+ * Prepare schema for report list routes
+ *
+ * @returns Schema for report list route
+ */
 export const prepareReportListSchema = () => ({
   summary: 'Get list of reports supported by the API',
   tags: ['r5'],
@@ -54,6 +70,14 @@ export const prepareReportListSchema = () => ({
   },
 });
 
+/**
+ * Prepare handler for report list routes
+ *
+ * @param supported Supported reports, can be unrelated to actual routes
+ * (in case of a faulty endpoint)
+ *
+ * @returns Handler for report list route
+ */
 export function prepareReportListHandler(supported: string[] = Array.from(r5.REPORT_IDS)) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<r5.ReportListItem[]> => {
     const query = ReportListQueryValidation.parse(request.query);
@@ -72,6 +96,13 @@ export function prepareReportListHandler(supported: string[] = Array.from(r5.REP
   };
 }
 
+/**
+ * Parse report attributes from query
+ *
+ * @param query The query
+ *
+ * @returns Report attributes
+ */
 function attributesFromQuery<Query extends Record<string, string>>(
   query: Query,
 ): r5.ReportAttribute[] {
@@ -90,6 +121,13 @@ function attributesFromQuery<Query extends Record<string, string>>(
   return attributes;
 }
 
+/**
+ * Parse report filters from query
+ *
+ * @param query The query
+ *
+ * @returns Report filters
+ */
 function filtersFromQuery<Query extends Record<string, string>>(query: Query): r5.ReportFilter[] {
   const filters: r5.ReportAttribute[] = [];
 
@@ -112,10 +150,39 @@ function filtersFromQuery<Query extends Record<string, string>>(query: Query): r
   return filters;
 }
 
+/**
+ * Pick a random non-blocking exception
+ *
+ * @returns Non-blocking exception, or nothing if there are no non-blocking exceptions
+ */
 function pickRandomNonBlockingException(): Exception | undefined {
-  return undefined;
+  const shouldPick = Math.random() < 0.25;
+  if (!shouldPick) {
+    return undefined;
+  }
+
+  const nonBlockingExceptions = [
+    exceptions.noUsageReady,
+    exceptions.noUsageLongerAvailable,
+    exceptions.partialData,
+    exceptions.parameterNotRecognized,
+    exceptions.invalidFilter,
+    exceptions.incongruousFilter,
+    exceptions.invalidAttribute,
+  ];
+  const index = Math.floor(Math.random() * nonBlockingExceptions.length);
+  return nonBlockingExceptions[index];
 }
 
+/**
+ * Prepare schema for report routes
+ *
+ * @param reportId The report id
+ * @param resultValidation The validation for the result
+ * @param queryValidation The additional validation for the query
+ *
+ * @returns Schema for report route
+ */
 export function prepareReportSchema<AnyReport, Query>(
   reportId: r5.ReportID,
   resultValidation: z.ZodType<AnyReport>,
@@ -136,6 +203,15 @@ export function prepareReportSchema<AnyReport, Query>(
   };
 }
 
+/**
+ * Prepare handler for report routes
+ *
+ * @param reportId The report id
+ * @param reportItemsGenerator The generator for report items
+ * @param queryValidation The additional validation for the query
+ *
+ * @returns Handler for report route
+ */
 export function prepareReportHandler<ReportItem, Query>(
   reportId: r5.ReportID,
   reportItemsGenerator: r5.ReportItemsGenerator<ReportItem>,

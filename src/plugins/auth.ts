@@ -12,14 +12,14 @@ export function requireCustomerId(valid: string[] = ['0000']): preValidationHook
     const id = (request.query as { customer_id?: string })?.customer_id;
 
     if (!id) {
-      const { status, ...exception } = exceptions.noEnoughInfo;
+      const { status, ...exception } = exceptions.notEnoughInformation;
       reply.status(status);
       reply.send(exception);
       return;
     }
 
     if (!valid.includes(id)) {
-      const { status, ...exception } = exceptions.noCustomer;
+      const { status, ...exception } = exceptions.customerNotAuthorized;
       reply.status(status);
       reply.send(exception);
     }
@@ -36,14 +36,14 @@ export function requireRequestorId(valid: string[] = ['0000']): preValidationHoo
     const id = (request.query as { requestor_id?: string })?.requestor_id;
 
     if (!id) {
-      const { status, ...exception } = exceptions.noEnoughInfo;
+      const { status, ...exception } = exceptions.notEnoughInformation;
       reply.status(status);
       reply.send(exception);
       return;
     }
 
     if (!valid.includes(id)) {
-      const { status, ...exception } = exceptions.noRequestor;
+      const { status, ...exception } = exceptions.requestorNotAuthorized;
       reply.status(status);
       reply.send(exception);
     }
@@ -60,14 +60,14 @@ export function requireAPIKey(valid: string[] = ['0000']): preValidationHookHand
     const key = (request.query as { api_key?: string })?.api_key;
 
     if (!key) {
-      const { status, ...exception } = exceptions.noEnoughInfo;
+      const { status, ...exception } = exceptions.notEnoughInformation;
       reply.status(status);
       reply.send(exception);
       return;
     }
 
     if (!valid.includes(key)) {
-      const { status, ...exception } = exceptions.noApi;
+      const { status, ...exception } = exceptions.apiNotAuthorized;
       reply.status(status);
       reply.send(exception);
     }

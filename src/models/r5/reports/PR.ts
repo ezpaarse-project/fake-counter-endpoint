@@ -32,6 +32,13 @@ export const PlatformReportValidation = ReportValidation(PlatformUsageValidation
 
 export type PlatformReport = z.infer<typeof PlatformReportValidation>;
 
+/**
+ * Generate fake platform usage
+ *
+ * @param min Minimum number of items
+ *
+ * @returns The items
+ */
 export const generateFakePlatformUsage: ReportItemsGenerator<PlatformUsage> = (min = 0) => {
   const schema = z.array(PlatformUsageValidation).min(min);
   return fakeZodSchema(schema);

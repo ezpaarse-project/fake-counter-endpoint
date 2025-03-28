@@ -45,6 +45,13 @@ export const TitleReportValidation = ReportValidation(TitleUsageValidation);
 
 export type TitleReport = z.infer<typeof TitleReportValidation>;
 
+/**
+ * Generate fake title usage
+ *
+ * @param min Minimum number of items
+ *
+ * @returns The items
+ */
 export const generateFakeTitleUsage: ReportItemsGenerator<TitleUsage> = (min = 0) => {
   const schema = z.array(TitleUsageValidation).min(min);
   return fakeZodSchema(schema);
