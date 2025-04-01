@@ -29,12 +29,25 @@ export function errorHandler(err: FastifyError, request: FastifyRequest, reply: 
   if (hasZodFastifySchemaValidationErrors(err)) {
     exception.Data = err.validation.map((v) => `${v.schemaPath} is ${v.message}`).join(', ');
     ({ status, ...exception } = exceptions.notEnoughInformation);
+    appLogger.error({
+      msg: 'Error serializing request',
+      url: request.url,
+      issues: err.validation,
+    });
   }
 
   if (isResponseSerializationError(err)) {
-    exception.Data = 'Error serializing response. See logs of application for more details.';
+    // We should raise a Not Available exception here
+    // but for testing purposes, we return a custom exception
+    exception = {
+      Code: 500,
+      Message: 'Generated invalid report',
+      Severity: 'Fatal',
+      Data: 'See logs of application for more details.',
+    };
     appLogger.error({
       msg: 'Error serializing response',
+      url: request.url,
       issues: err.cause.issues,
     });
   }
