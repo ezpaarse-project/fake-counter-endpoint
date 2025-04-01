@@ -126,7 +126,7 @@ const ItemPerformanceInstanceValidation = z.object({
     'No_License',
     'Limit_Exceeded',
   ] as const),
-  Value: z.number().int().min(1),
+  Count: z.number().int().min(1),
 });
 
 export const ItemPerformanceValidation = z.object({

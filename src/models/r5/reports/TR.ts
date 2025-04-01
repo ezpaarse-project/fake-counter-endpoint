@@ -12,10 +12,10 @@ import {
 
 const TitleUsageValidation = z.object({
   Title: z.string(),
-  Item_ID: ItemIDValidation.optional(),
+  Item_ID: z.array(ItemIDValidation).min(1).optional(),
   Platform: z.string(),
   Publisher: z.string(),
-  Publisher_ID: PublisherIDValidation.optional(),
+  Publisher_ID: z.array(PublisherIDValidation).min(1).optional(),
   Data_Type: z.enum([
     'Book',
     'Database',

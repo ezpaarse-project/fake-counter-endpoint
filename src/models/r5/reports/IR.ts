@@ -18,7 +18,7 @@ const ItemContributorValidation = z.object({
 
 const ItemDateValidation = z.object({
   Type: z.enum(['Publication_Date'] as const),
-  Name: z.string().date(),
+  Value: z.string().date(),
 });
 
 const ItemAttributeValidation = z.object({
@@ -29,7 +29,7 @@ const ItemAttributeValidation = z.object({
     'Qualification_Level',
     'Proprietary',
   ] as const),
-  Name: z.string(),
+  Value: z.string(),
 });
 
 const ItemParentValidation = z.object({
@@ -77,15 +77,15 @@ const ItemComponentValidation = z.object({
 
 const ItemUsageValidation = z.object({
   Item: z.string(),
-  Item_ID: ItemIDValidation.optional(),
+  Item_ID: z.array(ItemIDValidation).min(1).optional(),
   Item_Contributors: z.array(ItemContributorValidation).min(1).optional(),
   Item_Dates: z.array(ItemDateValidation).min(1).optional(),
   Item_Attributes: z.array(ItemAttributeValidation).min(1).optional(),
   Platform: z.string(),
   Publisher: z.string(),
-  Publisher_ID: PublisherIDValidation.optional(),
+  Publisher_ID: z.array(PublisherIDValidation).min(1).optional(),
   Item_Parent: ItemParentValidation.optional(),
-  Item_Component: ItemComponentValidation.optional(),
+  Item_Component: z.array(ItemComponentValidation).min(1).optional(),
   Data_Type: z.enum([
     'Article',
     'Book',
